@@ -1,0 +1,38 @@
+=== VERIFY TEST CONTAINER ===
+=== POSTGRES READINESS ===
+/var/run/postgresql:5432 - accepting connections
+=== CREATE ISOLATED TEST DATABASE ===
+=== RUN EXPERIMENT 1 ===
+=== TEST A: WRONG UNIQUE KEY ===
+CREATE TABLE
+INSERT 0 1
+INSERT 0 0
+ source_system | external_id |        summary        
+---------------+-------------+-----------------------
+ jira          | 1042        | Authentication outage
+(1 row)
+
+NOTICE:  PASS A: second incident suppressed
+DO
+=== TEST B: CORRECT COMPOSITE KEY ===
+CREATE TABLE
+INSERT 0 2
+ source_system | external_id |          summary           
+---------------+-------------+----------------------------
+ jira          | 1042        | Authentication outage
+ zendesk       | 1042        | Payment processing failure
+(2 rows)
+
+NOTICE:  PASS B: both incidents retained
+DO
+=== TEST C: REPLAY ===
+ source_system | external_id | summary 
+---------------+-------------+---------
+(0 rows)
+
+INSERT 0 0
+NOTICE:  PASS C: replay did not duplicate incident
+DO
+=== ALL ASSERTIONS PASSED ===
+=== CLEANUP AFTER SUCCESS ===
+=== EXPERIMENT 1 COMPLETE ===

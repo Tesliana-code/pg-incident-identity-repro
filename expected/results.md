@@ -1,6 +1,6 @@
 # Expected verification — PostgreSQL 16
 
-These are expected assertions, **not freshly captured terminal logs for the repository scripts**. Equivalent interactive experiments were run by the author, with 3 + 3 + 5 assertions passing.
+All 11 assertions (3 + 3 + 5) passed on PostgreSQL 16.14. Actual execution logs are preserved in `expected/output/`.
 
 | Script | Assertion | Expected evidence |
 |---|---|---|
@@ -16,4 +16,4 @@ These are expected assertions, **not freshly captured terminal logs for the repo
 | | D | Re-delivery inserts missing second row |
 | | E | Subsequent replay inserts zero rows |
 
-All three scripts use temporary tables and `ROLLBACK`; `ON_ERROR_STOP` aborts on unexpected failure.
+Experiments 1 and 2 use isolated test databases, removed only after successful execution. Experiment 3 uses a temporary table and `ROLLBACK`. All scripts use `ON_ERROR_STOP`.

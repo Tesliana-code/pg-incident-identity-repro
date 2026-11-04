@@ -1,0 +1,38 @@
+=== VERIFY TEST CONTAINER ===
+=== POSTGRES READINESS ===
+/var/run/postgresql:5432 - accepting connections
+=== CREATE ISOLATED TEST DATABASE ===
+=== RUN EXPERIMENT 2 ===
+=== TEST A: SOURCE-SCOPED KEY ===
+CREATE TABLE
+INSERT 0 1
+ workspace_id | connector_instance_id | external_id |    summary    
+--------------+-----------------------+-------------+---------------
+ acme         | zendesk-eu            | 1042        | Login failure
+(1 row)
+
+NOTICE:  PASS A: 2 legitimate incidents suppressed
+DO
+=== TEST B: WORKSPACE + CONNECTOR INSTANCE KEY ===
+CREATE TABLE
+INSERT 0 3
+ workspace_id | connector_instance_id | external_id |     summary     
+--------------+-----------------------+-------------+-----------------
+ acme         | zendesk-eu            | 1042        | Login failure
+ acme         | zendesk-us            | 1042        | Payment timeout
+ beta         | zendesk-eu            | 1042        | API unavailable
+(3 rows)
+
+DO
+=== TEST C: REPLAY ===
+NOTICE:  PASS B: all 3 independent incidents retained
+ workspace_id | connector_instance_id | external_id | summary 
+--------------+-----------------------+-------------+---------
+(0 rows)
+
+INSERT 0 0
+DO
+=== ALL ASSERTIONS PASSED ===
+NOTICE:  PASS C: repeated delivery created no duplicate
+=== CLEANUP AFTER SUCCESS ===
+=== EXPERIMENT 2 COMPLETE ===

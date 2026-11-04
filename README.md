@@ -6,18 +6,28 @@ Three reproducible, synthetic SQL experiments demonstrate how incorrectly scoped
 
 PostgreSQL 16 with `psql`; use a **disposable, nonproduction database** with permission to create temporary tables. No extensions, application data or external dependencies.
 
+## Test container
+
+Create a disposable PostgreSQL 16 container before running the experiments:
+
+`docker run -d --name pg-incident-article-pg16 --label purpose=pg-incident-article --network none --tmpfs /var/lib/postgresql/data:rw,size=256m --shm-size=64m -e POSTGRES_PASSWORD=article_test_only postgres:16-alpine`
+
+Wait for readiness with `docker exec pg-incident-article-pg16 pg_isready -U postgres -d postgres`.
+
+The container uses temporary in-memory storage and publishes no network ports. If it already exists, inspect it rather than recreating it. Never run these experiments against production data.
+
 ## Run
 
-From the repository root, set `TEST_DATABASE_URL` to a disposable PostgreSQL connection string:
+From the repository root, use a dedicated PostgreSQL 16 container labelled `purpose=pg-incident-article`.
 
-```bash
-for file in sql/0*.sql; do
-  echo "RUNNING $file"
-  psql -X -v ON_ERROR_STOP=1 -d "$TEST_DATABASE_URL" -f "$file" || break
-done
-```
+Set `CONTAINER` to its name and `PG_USER` to its database user (default: `postgres`).
+Example: `export CONTAINER=pg-incident-article-pg16 PG_USER=postgres`.
 
-Each script creates only temporary tables inside a transaction and ends with `ROLLBACK`. On an error, `ON_ERROR_STOP` exits `psql` and PostgreSQL rolls back the open transaction when the connection closes.
+Run the introductory reproduction with `docker exec -i "$CONTAINER" psql -X -U "$PG_USER" -d postgres -v ON_ERROR_STOP=1 < sql/00-reproduce-failure.sql`.
+
+Run the three experiments with `bash scripts/01-global-id.sh`, `bash scripts/02-connector-collision.sh`, and `bash scripts/03-migration-trap.sh`.
+
+The runners require an existing dedicated test container and do not create one. Never use a production or application container.
 
 ## Experiments
 
@@ -40,7 +50,7 @@ Production changes to constraints need a coordinated application rollout, inspec
 
 ## Attribution
 
-These synthetic example scripts were drafted with AI assistance and exercised by the author against PostgreSQL 16 in earlier equivalent experiments. The expected-results document is **not** a freshly captured test log for these exact repository files. Any use in a publication must follow its editorial policy; disclosure alone does not override authoring restrictions.
+These synthetic example scripts were drafted with AI assistance and exercised by the author against PostgreSQL 16 in earlier equivalent experiments. Actual PostgreSQL 16.14 execution logs for these repository scripts are preserved in `expected/output/`; all 11 assertions passed. Any use in a publication must follow its editorial policy; disclosure alone does not override authoring restrictions.
 
 ## License
 

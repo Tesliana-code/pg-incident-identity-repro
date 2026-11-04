@@ -1,0 +1,42 @@
+=== VERIFY TEST CONTAINER ===
+=== POSTGRES READINESS ===
+/var/run/postgresql:5432 - accepting connections
+=== RUN EXPERIMENT 3 ===
+BEGIN
+=== EXPERIMENT 03: THE MIGRATION TRAP ===
+=== A: EXISTING SCHEMA WITH WRONG IDENTITY ===
+CREATE TABLE
+INSERT 0 1
+INSERT 0 0
+DO
+=== B: MIGRATE CONSTRAINT WITHOUT DELETING ROWS ===
+NOTICE:  PASS A: legacy schema suppressed a valid incident
+ALTER TABLE
+ALTER TABLE
+NOTICE:  PASS B: migration preserved existing data
+NOTICE:  Previously suppressed incident is still absent
+DO
+=== C: LEGACY APPLICATION SQL MUST CHANGE ===
+NOTICE:  PASS C: old ON CONFLICT target rejected (42P10)
+DO
+INSERT 0 1
+DO
+NOTICE:  PASS D: re-delivered incident accepted
+ workspace_id | connector_instance_id | external_id | summary 
+--------------+-----------------------+-------------+---------
+(0 rows)
+
+INSERT 0 0
+DO
+=== FINAL DATA ===
+NOTICE:  PASS E: replay safely suppressed
+ workspace_id | connector_instance_id | external_id |     summary     
+--------------+-----------------------+-------------+-----------------
+ acme         | zendesk-eu            | 1042        | Login failure
+ acme         | zendesk-us            | 1042        | Payment timeout
+(2 rows)
+
+ROLLBACK
+=== EXPERIMENT 03 COMPLETE: CHANGES ROLLED BACK ===
+=== EXPERIMENT 3 COMPLETE ===
+Temporary tables and transaction rolled back.
